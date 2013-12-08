@@ -6,11 +6,11 @@
   <body onLoad='init()'>
     <canvas id="canvas" width="900" height="400"></canvas>
     <script>
-/* ---SPINNY DOT SIMULATOR 2013---- */
-
+/* ---N-Body Simulator---- */
+/* By Kevin Hennessy*/
 
 /*
-Things to do:
+Plans:
 *
   
 * Draw orbit paths that dissapear when the camera moves 
@@ -170,9 +170,9 @@ GenericButton.prototype.ismouseinside  = function(mx, my){
 // Constructor for Body objects to hold data for all drawn objects.
 // For now they will just be defined as rectangles.
 function Body(position, mass, velocity, pinned) {
-  // This is a very simple and unsafe constructor. All we're doing is checking if the values exist.
-  // "x || 0" just means "if there is a value for x, use that. Otherwise use 0."
-  // But we aren't checking anything else! We could put "Lalala" for the value of x 
+  // From tutorial: "This is a very simple and unsafe constructor. All we're doing is checking if the values exist.
+  // 'x || 0' just means 'if there is a value for x, use that. Otherwise use 0.'
+  // But we aren't checking anything else! We could put 'Lalala' for the value of x "
   this.position = position;
   this.mass = mass;
   this.velocity = velocity;
@@ -313,11 +313,7 @@ function CanvasState(canvas) {
   
   // **** Then events! ****
   
-  // This is an example of a closure!
-  // Right here "this" means the CanvasState. But we are making events on the Canvas itself,
-  // and when the events are fired on the canvas the variable "this" is going to mean the canvas!
-  // Since we still want to use this particular CanvasState in the events we have to save a reference to it.
-  // This is our reference!
+  
   var myState = this;
   
   //fixes a problem where double clicking causes text to get selected on the canvas
