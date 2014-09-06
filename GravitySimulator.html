@@ -7,10 +7,9 @@
     <canvas id="canvas" width="900" height="400"></canvas>
     <script>
 /* ---N-Body Simulator---- */
-/* By Kevin Hennessy*/
-
+/*    By Kevin Hennessy    */
 /*
-Plans:
+Things to do:
 *
   
 * Draw orbit paths that dissapear when the camera moves 
@@ -91,7 +90,11 @@ GenericButton.prototype.draw = function(ctx) {
    if(this.beinghelddown == false){
     ctx.save();
 	  var radius = 5;
-	  
+	 
+/*	 ctx.strokeStyle = 'grey';
+	  ctx.fillStyle = 'grey';
+	  roundRect(ctx, this.position.x-1.5, this.position.y-1.5, this.width+3, this.height+3, radius, true, true);
+*/	  
 	  ctx.strokeStyle = 'grey';
 	  ctx.fillStyle = 'grey';
 	  roundRect(ctx, this.position.x, this.position.y, this.width, this.height, radius, true, true);
@@ -111,10 +114,15 @@ GenericButton.prototype.draw = function(ctx) {
 	  ctx.font = '10pt Calibri';
       ctx.fillStyle = 'black';
       ctx.fillText(this.buttontext, this.position.x+5, this.position.y+(this.height/2)+5);
-
+	 // if(this.ismouseinside(myState.mousepoint.x, myState.mousepoint.y){
+	   //  alert("mouse inside");
+	  //}   
 	   
     }else{
-
+	/* ctx.strokeStyle = 'grey';
+	  ctx.fillStyle = 'grey';
+	  roundRect(ctx, this.position.x-1.5, this.position.y+3-1.5, this.width+3, this.height+3, radius, true, true);
+	  */
 	
 	   var newx =this.position.x;
 	   var newy = this.position.y;
@@ -123,7 +131,8 @@ GenericButton.prototype.draw = function(ctx) {
 	  ctx.strokeStyle = 'grey';
 	  ctx.fillStyle = 'grey';
 	  roundRect(ctx, newx, newy, this.width, this.height, radius, true, true);
-       ctx.clip();
+	//   roundRect(ctx, this.position.x, this.position.y, this.width, this.height, radius, true, true);
+	   ctx.clip();
        ctx.beginPath();
        ctx.strokeStyle = 'grey';
        ctx.lineWidth = 5;
@@ -160,9 +169,9 @@ GenericButton.prototype.ismouseinside  = function(mx, my){
 // Constructor for Body objects to hold data for all drawn objects.
 // For now they will just be defined as rectangles.
 function Body(position, mass, velocity, pinned) {
-  // From tutorial: "This is a very simple and unsafe constructor. All we're doing is checking if the values exist.
-  // 'x || 0' just means 'if there is a value for x, use that. Otherwise use 0.'
-  // But we aren't checking anything else! We could put 'Lalala' for the value of x "
+  // This is a very simple and unsafe constructor. All we're doing is checking if the values exist.
+  // "x || 0" just means "if there is a value for x, use that. Otherwise use 0."
+  // But we aren't checking anything else! We could put "Lalala" for the value of x 
   this.position = position;
   this.mass = mass;
   this.velocity = velocity;
@@ -199,13 +208,15 @@ Body.prototype.draw = function(ctx) {
     ctx.fillStyle = 'black';
     ctx.fill();
   }
-
+  //ctx.lineWidth = 5;
+  //ctx.strokeStyle = '#003300';
+  //ctx.stroke();
 }
 
 Body.prototype.updateforcamera = function(CameraVariable) {
   this.position.x =  this.position.x - CameraVariable.x;
   this.position.y =  this.position.y - CameraVariable.y;
- 
+  //alert("Body.prototype.updateforcamera called");
 }
 
 //update the Body's position
@@ -228,12 +239,21 @@ Body.prototype.contains = function(mx, my) {
   //  F =   -----------------------
   //	        distance ^2
 Body.prototype.forceFrom = function(OtherBody) {
-  var G = 5;
+  var G = 10;  ;5
   var ForceVector = new vector (this.position.x - OtherBody.position.x, this.position.y - OtherBody.position.y );
+  //var ForceVector = new vector (this.position.x , this.position.y );
+  //var ForceVector = new vector (OtherBody.position.x, OtherBody.position.y );
+ 
   var dist = this.position.distance(OtherBody.position);
+  //var ScalarForce = (G * this.mass * OtherBody.mass) / ((dist * dist) );
+  //ForceVector.x = ForceVector.x * ScalarForce;
+  //ForceVector.y = ForceVector.y * ScalarForce;
+  //return ForceVector;
   var Acceleration = (G*OtherBody.mass)/(dist*dist);
   Acceleration = Acceleration /6000;
-ForceVector.x = ForceVector.x * Acceleration;
+  //var ReturnVelocity = new vector(Math.sqrt((OtherBody.velocity.x * OtherBody.velocity.x)+2*(Acceleration.x * dist)), Math.sqrt((OtherBody.velocity.y * OtherBody.velocity.y)+2*(Acceleration.y * dist)));
+  //var ReturnVelocity = new vector(Math.sqrt((OtherBody.position.x * OtherBody.velocity.x)+2*(Acceleration.x * dist)), Math.sqrt((0*OtherBody.velocity.y * OtherBody.velocity.y)+2*(Acceleration.y * dist)));
+  ForceVector.x = ForceVector.x * Acceleration;
   ForceVector.y = ForceVector.y * Acceleration; 
   return ForceVector;
   }
@@ -245,6 +265,8 @@ function CanvasState(canvas) {
   this.width = canvas.width;
   this.height = canvas.height;
   this.ctx = canvas.getContext('2d');
+  // This complicates things a little but but fixes mouse co-ordinate problems
+  // when there's a border or padding. See getMouse for more detail
   var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
   if (document.defaultView && document.defaultView.getComputedStyle) {
     this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10)      || 0;
@@ -252,8 +274,8 @@ function CanvasState(canvas) {
     this.styleBorderLeft  = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10)  || 0;
     this.styleBorderTop   = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10)   || 0;
   }
-  // From tutorial "Some pages have fixed-position bars (like the stumbleupon bar) at the top or left of the page
-  // They will mess up mouse coordinates and this fixes that"
+  // Some pages have fixed-position bars (like the stumbleupon bar) at the top or left of the page
+  // They will mess up mouse coordinates and this fixes that
   var html = document.body.parentNode;
   this.htmlTop = html.offsetTop;
   this.htmlLeft = html.offsetLeft;
@@ -269,7 +291,7 @@ function CanvasState(canvas) {
   this.CentreOfTheUniverse = new vector((this.canvas.width/2),(this.canvas.height/2));
   this.NumberOfBodys = 0;
   this.paused = false; 
-  this.Bodys = [];  // the collection of bodies to be drawn
+  this.Bodys = [];  // the collection of things to be drawn
   this.NextStepVelocitys  = []; 
   this.GenericButtonArray = [];
   this.ButtonIsBeingPressed = false;
@@ -278,7 +300,9 @@ function CanvasState(canvas) {
   this.placing_mode = "Manual_Mode"; // Keep track of the placing mode.
   this.placing_mass = 100;
   this.ButtonBeingHeldDown = null;
-
+  // the current selected object. In the future we could turn this into an array for multiple selection
+ 
+  
   //these two values are updated during events
   this.clickedpoint = new vector (1,1);
   this.mousepoint =  new vector (0,0);
@@ -288,7 +312,11 @@ function CanvasState(canvas) {
   
   // **** Then events! ****
   
-  
+  // This is an example of a closure!
+  // Right here "this" means the CanvasState. But we are making events on the Canvas itself,
+  // and when the events are fired on the canvas the variable "this" is going to mean the canvas!
+  // Since we still want to use this particular CanvasState in the events we have to save a reference to it.
+  // This is our reference!
   var myState = this;
   
   //fixes a problem where double clicking causes text to get selected on the canvas
@@ -301,6 +329,7 @@ function CanvasState(canvas) {
 	
 	myState.clickedpoint = new vector(mouse.x, mouse.y);
 
+//	myState.mousepoint = new vector(mouse.x, mouse.y);
     myState.ButtonIsBeingPressed = false;
 	myState.placing = true;
 	for (var i =0; i<myState.GenericButtonArray.length; i++){
@@ -323,9 +352,12 @@ function CanvasState(canvas) {
 	   }else{
 	      myState.BodySelected = true;
 		 myState.resetcamera();
- 
-	        myState.MoveCamera(myState.Selection.position, myState.CentreOfView);
- 
+		 //myState.updateforcamera();
+		 // while(myState.CentreOfView.x !== myState.Selection.position.x && myState.CentreOfView.y !== myState.Selection.position.y){
+		    
+			 myState.MoveCamera(myState.Selection.position, myState.CentreOfView);
+			// myState.updateforcamera(); 
+		  //}
 	   }
 	}
 	
@@ -355,7 +387,9 @@ function CanvasState(canvas) {
 	 if(myState.MovingCamera === true){
 	    myState.clickedpoint.x = myState.clickedpoint.x - myState.CameraVariable.x;
 		myState.clickedpoint.y = myState.clickedpoint.y - myState.CameraVariable.y;
-	 	
+	    //myState.ctx.translate(myState.clickedpoint.x- myState.mousepoint.x, myState.clickedpoint.y- myState.mousepoint.y);
+	    //myState.clickedpointpreviousframe = myState.clickedpoint;
+		
 	    myState.CameraVariable.x =  myState.clickedpoint.x- myState.mousepoint.x;
         myState.CameraVariable.y =  myState.clickedpoint.y- myState.mousepoint.y;
 			
@@ -396,7 +430,7 @@ function CanvasState(canvas) {
 	myState.CTRLpressed = true;
     }
 	
-   if(keyCode==32) {
+   if(keyCode==80) {
       if(myState.paused === true){
 	   myState.paused = false;
 	}else if (myState.paused === false){
@@ -489,7 +523,8 @@ CanvasState.prototype.clear = function() {
 }
 
 CanvasState.prototype.resetcamera = function() {
-
+  //alert("camera reset pressed!");
+  //this.CameraVariable = new vector(0,0);
   for (var i =0; i< this.Bodys.length; i++){
      this.Bodys[i].position.x = this.Bodys[i].position.x + (this.CentreOfView.x - this.CentreOfTheUniverse.x);
 	 this.Bodys[i].position.y = this.Bodys[i].position.y + (this.CentreOfView.y - this.CentreOfTheUniverse.y);
@@ -507,7 +542,7 @@ CanvasState.prototype.drawdebuginfo = function(ctx) {
       ctx.fillStyle = 'yellow';
       ctx.fillText("The last created body is at (" + this.lastcreatedbody.position.x +", "+ this.lastcreatedbody.position.y +") and has a velocity of (" + this.lastcreatedbody.velocity.x +"," + this.lastcreatedbody.velocity.y+")" , 10, 380);
       ctx.fillText("Number of particles is: "+this.NumberOfBodys , 10, 390);
-	
+	//  ctx.fillText("Size of GenericButtonArray is: "+this.GenericButtonArray.length , 200, 390);
 	  ctx.fillText("myState.CTRL Pressed = "+ this.CTRLpressed , 200, 390);
 	  ctx.fillText("myState.MovingCamera = "+ this.MovingCamera , 400, 390);
 	  ctx.fillText("myState.CentreOfView= ("+ this.CentreOfView.x + ", "+ this.CentreOfView.y +")" , 600, 370);
@@ -543,15 +578,15 @@ CanvasState.prototype.drawplacementgraphics = function(ctx) {
 CanvasState.prototype.drawcentrelines = function(ctx) {
       //line
 	  ctx.beginPath();
-      ctx.moveTo(this.CentreOfTheUniverse.x, 0);
-      ctx.lineTo(this.CentreOfTheUniverse.x, this.canvas.height);      
+      ctx.moveTo(this.CentreOfTheUniverse.x-100, 0);
+      ctx.lineTo(this.CentreOfTheUniverse.x-100, this.canvas.height);      
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'green';
       ctx.stroke();
 	  
 	  ctx.beginPath();
-      ctx.moveTo(0, this.CentreOfTheUniverse.y);
-      ctx.lineTo(this.canvas.width, this.CentreOfTheUniverse.y);      
+      ctx.moveTo(0, this.CentreOfTheUniverse.y+70);
+      ctx.lineTo(this.canvas.width, this.CentreOfTheUniverse.y+70);      
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'green';
       ctx.stroke();
@@ -584,13 +619,17 @@ CanvasState.prototype.computeforces = function() {
           for (var j=0; j<this.NumberOfBodys; j++){ 
             if(i !== j){                	
                  //if two particles have the same position, teleport the second one one pixel to the left
-		           if(this.Bodys[i].position.x === this.Bodys[j].position.x && this.Bodys[i].position.y === this.Bodys[j].position.y){
-	                             this.Bodys[j].position.x = this.Bodys[j].position.x+1;			    
-		            }
-                				 
+				 if(this.Bodys[i].position.x === this.Bodys[j].position.x && this.Bodys[i].position.y === this.Bodys[j].position.y){
+	                  this.Bodys[j].position.x = this.Bodys[j].position.x+1;			    
+				 }
+                 //this.NextStepVelocitys[i].x = this.Bodys[i].velocity.x - this.Bodys[i].forceFrom(this.Bodys[j]).x;
+			     //this.NextStepVelocitys[i].y =  this.Bodys[i].velocity.y - this.Bodys[i].forceFrom(this.Bodys[j]).y;
+				 				 
 			     this.NextStepVelocitys[i].x = this.NextStepVelocitys[i].x + this.Bodys[i].forceFrom(this.Bodys[j]).x;
 			     this.NextStepVelocitys[i].y =  this.NextStepVelocitys[i].y + this.Bodys[i].forceFrom(this.Bodys[j]).y;
-			 }
+				 //this.Bodys[i].velocity.x = this.Bodys[i].velocity.x - this.Bodys[i].forceFrom(this.Bodys[j]).x;
+			     //this.Bodys[i].velocity.y = this.Bodys[i].velocity.y - this.Bodys[i].forceFrom(this.Bodys[j]).y;
+		   }
 		  }
 	   }
     }
@@ -606,11 +645,13 @@ CanvasState.prototype.computeforces = function() {
 }
 
 CanvasState.prototype.draw = function() {
-   
+    // ** Add stuff you want drawn in the background all the time here **
 
-  
+     
+
   //var mouse = getMouse(function(e));
     var ctx = this.ctx;
+    //ctx.fillStyle   = '#FFFFFF';
     var Bodys = this.Bodys;
 	ctx.canvas.width  = 750;
     ctx.canvas.height = 350;
@@ -634,8 +675,7 @@ CanvasState.prototype.draw = function() {
       ctx.fillText("Paused!" , 10, 10);
    
 	}
-    // ** Add stuff you want drawn in the background all the time here **
-    
+
 	
     // draw all Bodys
     var l = Bodys.length;
@@ -699,17 +739,18 @@ CanvasState.prototype.getMouse = function(e) {
 function init() {
   var s = new CanvasState(document.getElementById('canvas'));
   //s.addBody(new Body(new vector(400, 200), s.placing_mass, new vector(0, 0), false));
- // s.addBody(new Body(new vector(400, 250), s.placing_mass, new vector(1, 1), false));
-  s.addBody(new Body(new vector(400, 300), 10000, new vector(0, 0), false));
-//  s.addBody(new Body(new vector(10, 10), s.placing_mass, new vector(0, 0), false));
-//  s.addBody(new Body(new vector(10, 10), s.placing_mass, new vector(0, 0), false));
+ // s.addBody(new Body(new vector(400, 250), s.placing_mass, new vector(2, 0), false));
+ s.addBody(new Body(new vector(220, 190), 500, new vector(2, 2), false));
+     s.addBody(new Body(new vector(400, 300), 1000, new vector(3.5, 0), false));
+  s.addBody(new Body(new vector(400, 170), 10000, new vector(-0.2, -0.3), false));
+//  s.addBody(new Body(new vector(500, 10), 100, new vector(0, -3), false));
+//  s.addBody(new Body(new vector(10, 10), s.placing_mass, new vector(0, ), false));
 
-  s.addGenericButton(new GenericButton(new vector(10, 200), "testbutton", 100, 20, function() { alert("Button pressed!");}, true, false));
-  s.addGenericButton(new GenericButton(new vector(100, 300), "Reset Camera", 100, 17, s.resetcamera, true, false));
-  s.addGenericButton(new GenericButton(new vector(700, 300), "Enter Select Mode", 100, 30, s.SelectionChoiceModePressed, true, false));
+ // s.addGenericButton(new GenericButton(new vector(670, 100), "testbutton", 100, 20, function() { alert("Button pressed!");}, true, false));
+  s.addGenericButton(new GenericButton(new vector(10, 300), "Reset Camera", 100, 17, s.resetcamera, true, false));
+  s.addGenericButton(new GenericButton(new vector(10, 330), "Enter Select Mode", 100, 30, s.SelectionChoiceModePressed, true, false));
 }
 
-// Now go make something amazing!
     </script>
   </body>
 </html>
